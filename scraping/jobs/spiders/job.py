@@ -1,3 +1,5 @@
+import time
+
 import scrapy
 from scrapy import Selector
 from scrapy.http import Response
@@ -16,8 +18,11 @@ class JobSpider(scrapy.Spider):
         self.driver.close()
 
     def parse(self, response: Response, **kwargs) -> dict:
-        for job in response.css("div.listing_b1i2dnp8"):
-            info = self._parse_additional_info(response, job)
+        all_links = response.css("div.listing_ohw4t83 div.type--positioned div.tiles_cobg3mp a.tiles_cnb3rfy::attr(href)").getall()
+
+        for job in all_links:
+            detail_url = response.urljoin(job)
+            info = self._parse_additional_info(detail_url)
             yield {
                 "title": info["title"],
                 "company": info["company"],
@@ -35,12 +40,10 @@ class JobSpider(scrapy.Spider):
 
     def _parse_additional_info(
             self,
-            response: Response,
-            book: Selector
+            detail_url,
     ) -> dict:
-        detail_url = response.urljoin(book.css("div.tiles_cobg3mp a.tiles_cnb3rfy::attr(href)").get())
         self.driver.get(detail_url)
-
+        time.sleep(3)
         detail_page = self.driver.page_source
         detail_response = Selector(text=detail_page)
         salary = detail_response.css(
