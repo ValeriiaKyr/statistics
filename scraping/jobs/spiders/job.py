@@ -18,7 +18,9 @@ class JobSpider(scrapy.Spider):
         self.driver.close()
 
     def parse(self, response: Response, **kwargs) -> dict:
-        all_links = response.css("div.listing_ohw4t83 div.type--positioned div.tiles_cobg3mp a.tiles_cnb3rfy::attr(href)").getall()
+        first = response.css("div.listing_ohw4t83 div.type--positioned div.tiles_cobg3mp a.tiles_cnb3rfy::attr(href)").getall()
+        next = response.css("div[data-test='section-offers'] div.tiles_b18pwp01 a.tiles_cnb3rfy::attr(href)").getall()
+        all_links = first + next
 
         for job in all_links:
             detail_url = response.urljoin(job)
