@@ -1,9 +1,12 @@
 import time
+from selenium.webdriver.common.by import By
 
 import scrapy
 from scrapy import Selector
 from scrapy.http import Response
 from selenium import webdriver
+from selenium.common.exceptions import NoSuchElementException
+
 
 class JobSpider(scrapy.Spider):
     name = "job"
@@ -38,6 +41,12 @@ class JobSpider(scrapy.Spider):
                 "city": info["city"],
                 "ukrainian_people": info["ukrainian_people"],
             }
+
+        num_pages = response.css("span[data-test='top-pagination-max-page-number']::text").get()
+        num_pages = int(num_pages)
+        for num in range(1, num_pages + 1):
+            self.start_urls = f"https://www.pracuj.pl/praca/python;kw?pn={num}&utm_source=google&utm_medium=cpc&utm_campaign=dsa_miasta_an&campaignid=20387307111&adgroupid=157252921568&gad_source=1&gclid=CjwKCAiAxKy5BhBbEiwAYiW--xCq-CDIBRyZwDEC0tZeGD6dr2OlbSgwcJd2BAw3hvwtve20L1uBnBoCZzQQAvD_BwE"
+            yield response.follow(self.start_urls, callback=self.parse)
 
 
     def _parse_additional_info(
